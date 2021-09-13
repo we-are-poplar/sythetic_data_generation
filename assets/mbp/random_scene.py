@@ -1,5 +1,5 @@
 import bpy
-from random import random
+from random import random, choice
 from math import pi, sin ,cos
 
 def randomizeLid():
@@ -35,10 +35,22 @@ def randomizeCamera():
     camera.rotation_euler.y = -r_y
     camera.rotation_euler.z = -r_z
     
+def randomizeScreenshot():
+    screen = bpy.data.objects["Screen"]
+    
+    mat = bpy.data.materials.new(name="New_Mat")
+    mat.use_nodes = True
+    bsdf = mat.node_tree.nodes["Principled BSDF"]
+    texImage = mat.node_tree.nodes.new('ShaderNodeTexImage')
+    
+    screen_bg_paths = Path("/Users/will/projects/blender_gen/data/raw/screen_bg/")
+    screen_bg_paths = [x for x in screen_bg_paths.iterdir()]
+    random_bg = str(choice(screen_bg_paths))
+    texImage.image = bpy.data.images.load(random_bg)
+    
+    mat.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs['Color'])
+    screen.data.materials[-1] = mat
+
 randomizeLid()
 randomizeCamera()
-scene = bpy.context.scene
-scene.render.image_settings.file_format='PNG'
-scene.render.filepath='/Users/will/projects/blender_gen/object_detection/macbook_random.png'
-bpy.ops.render.render(write_still=1)
-
+randomizeScreenshot()
